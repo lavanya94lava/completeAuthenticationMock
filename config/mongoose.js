@@ -14,3 +14,5 @@ db.on('error',console.log.bind(console,"Error in connecting to the DB"));
 db.once('open',function(){
     console.log("connected to the DB complete Authentication");
 });
+
+module.exports = db;
