@@ -13,7 +13,15 @@ const userSchema = new mongoose.Schema({
     name:{
         type:String,
         required:true
+    },
+    passwordToken:{
+        type:String
+    },
+    tokenExpiry:{
+        type:Date
     }
+},{
+    timestamps:true
 });
 
 const User = mongoose.model('User',userSchema);

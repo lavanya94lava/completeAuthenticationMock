@@ -9,6 +9,8 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
+const customMware = require('./config/middleware');
+const flash = require('connect-flash');
 
 app.use(express.urlencoded());
 app.use(cookieParser());
@@ -43,6 +45,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(passport.setAuthenticatedUser);
+app.use(flash());
+
+app.use(customMware.setFlash);
 
 app.use('/',require('./routes'));
 
