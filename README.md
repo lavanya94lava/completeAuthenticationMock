@@ -6,7 +6,7 @@ A complete starter code for authentication using passport, which can be embedded
 
 Setting Up The Project 
 ----------------------
-1. Clone or Download the Repo using https://github.com/lavanya94lava/completeAuthenticationMock.
+1. Clone or Download the Repo using https://github.com/lavanya94lava/completeAuthenticationMock
 
 2. Set up your directory structure to point to current folder.
 
