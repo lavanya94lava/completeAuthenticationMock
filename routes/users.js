@@ -1,21 +1,26 @@
+//this file contains all the routes for a user
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 
 const homeController = require('../controllers/home_controller');
 const usersController = require('../controllers/users_controller');
-const Recaptcha = require('express-recaptcha').RecaptchaV2;
+const Recaptcha = require('express-recaptcha').RecaptchaV2
 
 const SITE_KEY = "6Ld9ZuoUAAAAAL_GGpws8a2rdT7JJYMJkkecTgDN";
 const SECRET_KEY = "6Ld9ZuoUAAAAAF3jU7qv4idhY8k4I2cco7clF-y1";
 
-const recaptcha = new Recaptcha(SITE_KEY, SECRET_KEY, {callback:'cb'});
+const recaptcha =  new Recaptcha(SITE_KEY, SECRET_KEY, {callback:'cb'});
 
 //route to sign up a user
 router.get('/sign-up',recaptcha.middleware.render,usersController.signUp);
 
 //route to create a user
 router.post('/create',recaptcha.middleware.verify, usersController.createUser);
+
+//route to verify the user
+
+router.get("/verify-password.:token",);
 
 //route to sign in a user
 router.get('/sign-in',recaptcha.middleware.render,usersController.signIn);

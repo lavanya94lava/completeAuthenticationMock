@@ -1,3 +1,4 @@
+//this file contains a custom made middleware to send flash messages on an action
 module.exports.setFlash = function(req, res, next){
     res.locals.flash = {
         'success':req.flash('success'),

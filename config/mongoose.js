@@ -1,3 +1,5 @@
+//this file contains the configuration  of Mongo Connection mongoose
+
 const mongoose = require('mongoose');
 
 //make your DB

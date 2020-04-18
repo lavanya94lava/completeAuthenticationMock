@@ -1,3 +1,5 @@
+//this file contains the user Schema 
+
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -19,6 +21,9 @@ const userSchema = new mongoose.Schema({
     },
     tokenExpiry:{
         type:Date
+    },
+    isVerified:{
+        type:Boolean
     }
 },{
     timestamps:true
