@@ -48,4 +48,4 @@ Routes
 
 5. Forgot Password : `http://localhost:8000/users/forgot-password`
 
-6 Reset PassWord : `http://localhost:8000/users/reset-password/:token`
+6. Reset PassWord : `http://localhost:8000/users/reset-password/:token`
