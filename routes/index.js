@@ -44,4 +44,10 @@ router.get('/users/forgot-password', usersController.forgotPassword);
 //post data about forgot password and send mail
 router.post('/users/forgot-password-action',usersController.forgotPasswordAction);
 
+//get google Oauth route
+router.get('/users/auth/google',passport.authenticate('google',{scope:['profile','email']}));
+
+//get the route where google auth data would be received
+router.get('/users/auth/google/callback',passport.authenticate('google',{failureRedirect:'/users/sign-in'}),usersController.createSession);
+
 module.exports = router;

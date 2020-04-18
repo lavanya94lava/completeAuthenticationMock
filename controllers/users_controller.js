@@ -62,43 +62,6 @@ module.exports.destroySession = function(req,res){
     return res.redirect('/');
 }
 
-//reset form view
-module.exports.resetPasswordForm = function(req,res){
-    return res.render('password_reset',{
-        title:"Reset Password",
-        user:req.user,
-        token:req.params.token
-    });
-}
-
-//reset password post action
-module.exports.resetPasswordAction = async function(req,res){
-    try{    
-        console.log("reaching here");
-        await User.findOne({passwordToken:req.params.token, tokenExpiry:{$gt: Date.now()}},function(err,user){
-            if(!user){
-                req.flash("error","Token has expired or is not valid");
-                return res.redirect("back");
-            }
-            if(req.body.password === req.body.confirm_password){
-                user.password = req.body.password;
-                user.save();
-                req.flash("success","Password changed successfully");
-                return res.redirect("/");
-            }
-            else{
-                req.flash("error","Passwords did not match");
-                return res.redirect("back");
-            }
-        });
-    }   
-    catch(err){
-        req.flash("error","some error");
-        return res.redirect("back");
-    }
-
-}
-
 //forgot password form views
 module.exports.forgotPassword = function(req,res){
     return res.render('forgot_password',{
@@ -144,3 +107,38 @@ module.exports.forgotPasswordAction = async function(req,res){
     }   
 }
 
+//reset form view
+module.exports.resetPasswordForm = function(req,res){
+    return res.render('password_reset',{
+        title:"Reset Password",
+        user:req.user,
+        token:req.params.token
+    });
+}
+
+//reset password post action
+module.exports.resetPasswordAction = async function(req,res){
+    try{    
+        console.log("reaching here");
+        await User.findOne({passwordToken:req.params.token, tokenExpiry:{$gt: Date.now()}},function(err,user){
+            if(!user){
+                req.flash("error","Token has expired or is not valid");
+                return res.redirect("back");
+            }
+            if(req.body.password === req.body.confirm_password){
+                user.password = req.body.password;
+                user.save();
+                req.flash("success","Password changed successfully");
+                return res.redirect("/");
+            }
+            else{
+                req.flash("error","Passwords did not match");
+                return res.redirect("back");
+            }
+        });
+    }   
+    catch(err){
+        req.flash("error","some error");
+        return res.redirect("back");
+    }
+}

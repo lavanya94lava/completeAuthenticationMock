@@ -11,6 +11,8 @@ const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
 const customMware = require('./config/middleware');
 const flash = require('connect-flash');
+const passportGoogle = require('./config/passport_google_oauth2_strategy');
+
 
 app.use(express.urlencoded());
 app.use(cookieParser());
