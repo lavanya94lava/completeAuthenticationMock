@@ -4,6 +4,8 @@ const localStratgy = require('passport-local').Strategy;
 
 const User = require('../models/user');
 
+const bcrypt = require("bcrypt");
+
 passport.use(new localStratgy({
     usernameField: 'email',
     passReqToCallback:true
@@ -13,11 +15,17 @@ passport.use(new localStratgy({
             req.flash('error',err);
             return done(err);
         }
-        if(!user||user.password != password){
-            req.flash('error','Please check your credentials again');
+        bcrypt.compare(password,user.password,function(err,result){
+            if(err){
+                req.flash("error", "Error in deciphering the password using bcrypt");
+                return done(err);
+            }
+            if(result){
+                return done(null, user);
+            }
+            req.flash("error","Invalid Password or couldn't decipher it using bcypt");
             return done(null,false);
-        }
-        return done(null, user);
+        });
     })
 }));
 

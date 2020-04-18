@@ -15,7 +15,6 @@ function(accessToken,refreshToken, profile, done){
             console.log("Error in google-Oauth-Strategy",err);
             return;
         }
-        console.log(profile);
         if(user){
             return done(null,user);
         }

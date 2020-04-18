@@ -1,3 +1,17 @@
 body{
-    background-color: violet;
+    background-color:rosybrown;
+}
+
+.link{
+    font-size: 20px;
+    color: black;
+}
+
+a:hover{
+    background-color:cornflowerblue;
+    color: crimson;
+}
+
+#layout-main{
+    margin-top: 10px;
 }

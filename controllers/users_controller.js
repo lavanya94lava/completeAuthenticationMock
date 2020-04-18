@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const crypto = require("crypto");
 const nodemailer = require("../config/nodemailer");
+const bcrypt = require('bcrypt');
 
 module.exports.signUp = function(req,res){
     return res.render('sign_up',{
@@ -8,7 +9,6 @@ module.exports.signUp = function(req,res){
         title:"Sign Up"
     });
 }
-
 
 module.exports.signIn = function(req,res){
     return res.render('sign_in',{
@@ -32,14 +32,26 @@ module.exports.createUser = async function(req,res){
             return;
         }
         if(!user){
-            User.create(req.body, function(err, user){
-                if(err){
-                    console.log("error in creating a user");
-                    return;
-                }
-                req.flash("success", "new user created successfully");
-                return res.redirect("/users/sign-in");
-            });
+            bcrypt.genSalt(10, function(err,salt){
+                bcrypt.hash(req.body.password,salt,function(err,hash){
+                    if(err){
+                        req.flash("error","error in generating hash");
+                        return res.redirect("back");
+                    }
+                     User.create({
+                        name:req.body.name,
+                        email:req.body.email,
+                        password:hash
+                    }, function(err, user){
+                        if(err){
+                            console.log("error in creating a user");
+                            return res.redirect("back");
+                        }
+                        req.flash("success", "new user created successfully");
+                        return res.redirect("/users/sign-in");
+                    });
+                });
+            })
         }
         else{
             req.flash('error',"username already exists, please choose another");
@@ -81,12 +93,11 @@ module.exports.forgotPasswordAction = async function(req,res){
             }
             user.passwordToken = token;
             user.tokenExpiry = Date.now()+ 1800000;
-            
+            console.log("person -->");
             user.save();
             person = user;
         });
 
-        // console.log("person -->",person);
         await nodemailer.sendMail({
             to:person.email,
             subject:"Password Reset Email",
@@ -111,7 +122,6 @@ module.exports.forgotPasswordAction = async function(req,res){
 module.exports.resetPasswordForm = function(req,res){
     return res.render('password_reset',{
         title:"Reset Password",
-        user:req.user,
         token:req.params.token
     });
 }
@@ -119,15 +129,22 @@ module.exports.resetPasswordForm = function(req,res){
 //reset password post action
 module.exports.resetPasswordAction = async function(req,res){
     try{    
-        console.log("reaching here");
         await User.findOne({passwordToken:req.params.token, tokenExpiry:{$gt: Date.now()}},function(err,user){
             if(!user){
                 req.flash("error","Token has expired or is not valid");
                 return res.redirect("back");
             }
             if(req.body.password === req.body.confirm_password){
-                user.password = req.body.password;
-                user.save();
+                 bcrypt.genSalt(10,function(err,salt){
+                    bcrypt.hash(req.body.password,salt,function(err,hash){
+                        if(err){
+                            req.flash("error","error in creating hash");
+                            return res.redirect("back");
+                        }
+                        user.password = req.body.password;
+                        user.save();
+                    });
+                })
                 req.flash("success","Password changed successfully");
                 return res.redirect("/");
             }
@@ -141,4 +158,38 @@ module.exports.resetPasswordAction = async function(req,res){
         req.flash("error","some error");
         return res.redirect("back");
     }
+}
+
+//reset password after signin in
+module.exports.resetPasswordAfterSignIn = async function(req,res){
+    try{    
+        await User.findOne({email:req.user.email},function(err,user){
+            if(!user){
+                req.flash("error","Please check your email again as you were already signed in");
+                return res.redirect("back");
+            }
+            if(req.body.password === req.body.confirm_password){
+                 bcrypt.genSalt(10,function(err,salt){
+                    bcrypt.hash(req.body.password,salt,function(err,hash){
+                        if(err){
+                            req.flash("error","error in creating hash");
+                            return res.redirect("back");
+                        }
+                        user.password = hash;
+                        user.save();
+                    });
+                })
+                req.flash("success","Password changed successfully");
+                return res.redirect("/");
+            }
+            else{
+                req.flash("error","Passwords did not match");
+                return res.redirect("back");
+            }
+        });
+    }   
+    catch(err){
+        req.flash("error","some error");
+        return res.redirect("back");
+    }   
 }
