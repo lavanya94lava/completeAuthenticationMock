@@ -33,62 +33,64 @@ module.exports.createUser = async function(req,res){
             req.flash("error","Recaptcha Error");
             return res.redirect("back");
         } 
-        const token = crypto.randomBytes(20).toString('hex');
-        var person;
+        let token = crypto.randomBytes(20).toString('hex');
+        let person;
+
         await User.findOne({
             email:req.body.email
         },function(err, user){
             if(err){
                 console.log("error in signing up the user");
-                return;
+                return res.redirect("back");
             }
-            if(!user){
-                bcrypt.genSalt(10, function(err,salt){
-                    bcrypt.hash(req.body.password,salt,function(err,hash){
-                        if(err){
-                            req.flash("error","error in generating hash");
-                            return res.redirect("back");
-                        }
-                        User.create({
-                            name:req.body.name,
-                            email:req.body.email,
-                            password:hash,
-                            isVerified:false,
-                            passwordToken:token,
-                            tokenExpiry:Date.now() + 1800000
-                        }, function(err, user){
-                            if(err){
-                                console.log("error in creating a user");
-                                return res.redirect("back");
-                            }
-                            person = user;
-                            console.log("person details are-->",person);
-                            req.flash("success", "new user created successfully, please click on the link send to your email to verify yourself");
-                        });
-                    });
-                });
-            }
-            else{
+            if(user){
                 req.flash('error',"username already exists, please choose another");
                 return res.redirect("back");
             }
         });
-
-        await nodemailer.sendMail(
-            {   
-                to:person.email,
-                subject:"Account Verification",
-                text:'Click on the link below to verify your acount \n\n' + 'http://'+ req.headers.host + '/users/verify-user/'+token + '\n\n' 
-            },function(err,info){
-                console.log("reaching info-->",info);
-                if(err){
-                    req.flash("error","Error in sending mail");
-                    return;
-                }
-                req.flash("success","message sent successfully");
-                return res.redirect('back');
+        
+        const hashedPassword = await new Promise((res,rej) =>{
+            bcrypt.genSalt(10, function(err,salt){
+                bcrypt.hash(req.body.password,salt,function(err,hash){
+                    if(err){
+                        req.flash("error","error in generating hash");
+                        rej(hash);
+                        return res.redirect("/sign-up");
+                    }
+                    res(hash);
+                });
             });
-        }
+        })
+
+        await User.create({
+            name:req.body.name,
+            email:req.body.email,
+            password:hashedPassword,
+            isVerified:false,
+            passwordToken:token,
+            tokenExpiry:Date.now() + 1800000
+        }, function(err, user){
+            if(err){
+                console.log("error in creating a user");
+                return res.redirect("back");
+            }
+            person = user;
+            nodemailer.sendMail(
+                {   
+                    to:person.email,
+                    subject:"Account Verification",
+                    text:'Click on the link below to verify your acount \n\n' + 'http://'+ req.headers.host + '/users/verify-user/'+token + '\n\n' 
+                },function(err,info){
+                    if(err){
+                        req.flash("error","Error in sending mail");
+                        return;
+                    }
+                    req.flash("success","message sent successfully");
+                    return res.redirect('back');
+                });
+            req.flash("success", "new user created successfully, please click on the link send to your email to verify yourself");
+        });
+    }
     catch(err){
         req.flash("error",`${err} some error`);
         return res.redirect("back");
@@ -96,8 +98,7 @@ module.exports.createUser = async function(req,res){
 }
 
 
-// controller ot verify the user
-
+// controller to verify the user after signing-up
 module.exports.verifyUser = async function(req,res){
     try{
         await User.findOne({passwordToken:req.params.token,tokenExpiry:{$gt: Date.now()}},function(err,user){
@@ -152,20 +153,20 @@ module.exports.forgotPasswordAction = async function(req,res){
             user.tokenExpiry = Date.now()+ 1800000;
             user.save();
             person = user;
-        });
 
-        await nodemailer.sendMail({
-            to:person.email,
-            subject:"Password Reset Email",
-            text:'Click on the link below to reset your password :\n\n' + 'http://'+ req.headers.host + '/users/reset-password/'+token + '\n\n' 
-        },function(err,info){
-            if(err){
-                req.flash("error","Error in sending mail");
-                return;
-            }
-            req.flash("success","message sent successfully");
-            console.log("message sent -->", info);
-            return res.redirect('back');
+            nodemailer.sendMail({
+                to:person.email,
+                subject:"Password Reset Email",
+                text:'Click on the link below to reset your password :\n\n' + 'http://'+ req.headers.host + '/users/reset-password/'+token + '\n\n' 
+            },function(err,info){
+                if(err){
+                    req.flash("error","Error in sending mail");
+                    return;
+                }
+                req.flash("success","message sent successfully");
+                console.log("message sent -->", info);
+                return res.redirect('back');
+            });
         });
     }
     catch(err){
@@ -236,7 +237,7 @@ module.exports.resetPasswordAfterSignIn = async function(req,res){
                     });
                 })
                 req.flash("success","Password changed successfully");
-                return res.redirect("/");
+                return res.redirect("/sign-in");
             }
             else{
                 req.flash("error","Passwords did not match");

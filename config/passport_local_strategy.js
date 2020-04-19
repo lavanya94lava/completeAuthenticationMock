@@ -31,6 +31,10 @@ passport.use(new localStratgy({
                 if(user.isVerified){
                     return done(null, user);
                 }
+                else{
+                    req.flash("error", "User is not verified, Please go to your mail and check");
+                    return done(null, false);
+                }
             }
 
             req.flash("error","Invalid Password or couldn't decipher it using bcypt");

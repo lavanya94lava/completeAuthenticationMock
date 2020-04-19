@@ -8,6 +8,6 @@ const homeController = require('../controllers/home_controller');
 router.get('/',homeController.home);
 
 //various routes for user
-router.use("/users",require("./users"));
+router.use('/users',require("./users"));
 
 module.exports = router;
